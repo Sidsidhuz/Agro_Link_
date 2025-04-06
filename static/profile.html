@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" href="profile.css">
+    <script src="https://unpkg.com/winbox/dist/winbox.bundle.min.js"></script> <!-- WinBox Library -->
+    <script src="profile.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><button id="edit-profile-button" class="header-button">Edit Profile</button></li>
+                <li><a href="home.html">Home</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="index.html" id="logout-button">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="profile-card">
+            <div class="profile-image">
+                <img id="profile-picture" src="usericon.jpg" alt="Profile Picture" style="width: 150px; height: 150px;">
+                <label for="upload-profile-picture" class="upload-button">Change</label>
+                <input type="file" id="upload-profile-picture" accept="image/*" style="display: none;">
+            </div>
+            <div class="profile-info">
+                <p id="profile-username"></p>
+                <p id="profile-role">User Role</p>
+                <div class="social-links">
+                    <a href="#" target="_blank">LinkedIn</a>
+                    <a href="#" target="_blank">GitHub</a>
+                    <a href="#" target="_blank">Twitter</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-section">
+            <h2>About Me <button id="edit-about-button" class="edit-button">Edit</button></h2>
+            <p id="about-text"></p>
+        </section>
+
+        <section id="post-history">
+            <h2>Your Prediction History</h2>
+            <div id="history-container"></div>
+        </section>
+    </main>
+
+    <!-- Floating Add Post Button -->
+    <button id="add-post-button" class="floating-button">+</button>
+</body>
+</html>

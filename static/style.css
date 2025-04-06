@@ -1,0 +1,127 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: #f5f5f5; /* Light text color */
+    position: relative; /* For the overlay */
+    overflow: hidden; /* Prevent scrollbars */
+}
+
+/* Background Image with Faded Effect */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://i.postimg.cc/8zYtbYhp/This-is-my-first-post.jpg'); /* Background image */
+    background-size: cover; /* Ensure the image covers the entire background */
+    background-position: center; /* Center the image */
+    background-repeat: no-repeat; /* Prevent the image from repeating */
+    opacity: 0.5; /* Adjust the opacity to make it faded */
+    z-index: -1; /* Ensure it stays behind all content */
+}
+
+/* Header Section */
+.header {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    background-color: rgba(42, 42, 59, 0.8); /* Semi-transparent dark background */
+    color: #f5f5f5; /* Light text color */
+    text-align: center;
+    padding: 10px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 10; /* Ensure it stays above other elements */
+}
+
+/* Container */
+.container {
+    margin-top: 100px; /* Add margin to push the container below the header */
+    background: rgba(42, 42, 59, 0.9); /* Semi-transparent dark background */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Subtle shadow */
+    text-align: center;
+    width: 300px;
+    margin: 0 auto;
+    border: 1px solid #444; /* Darker border */
+    z-index: 1; /* Ensure it stays above the background */
+}
+
+/* Input Fields */
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #555; /* Darker input border */
+    border-radius: 5px;
+    background-color: #3a3a4a; /* Darker input background */
+    color: #f5f5f5; /* Light text color */
+}
+
+input::placeholder {
+    color: #aaa; /* Placeholder text color */
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff; /* Primary button color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #0056b3; /* Darker hover color */
+}
+
+/* Links */
+a {
+    color: #007bff; /* Link color */
+    cursor: pointer;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    display: none;
+    margin-top: 10px;
+    border: 1px solid #555; /* Darker dropdown border */
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #3a3a4a; /* Darker dropdown background */
+    color: #f5f5f5; /* Light text color */
+}
+
+.dropdown-menu label {
+    display: block;
+    margin-bottom: 5px;
+    color: #f5f5f5; /* Light text color */
+}
+
+/* Show Dropdown Menu */
+#dropdown-menu.show {
+    display: block;
+}
+
+/* Add styling for new dropdowns */
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+

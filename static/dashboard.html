@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="dstyle.css">
+    <script defer src="dashboard.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Topbar -->
+        <div class="topbar">
+            <h2 id="dashboard-title">🚜 Dashboard</h2>
+            <div id="weather-info" class="weather-box">🌤️ Loading weather... </div>
+            <ul>
+                <li><a href="home.html">🏠 Home</a></li>
+                <li class="location-dropdown">
+                    <a href="#" id="location-link">📍 Location</a>
+                    <div id="location-box" class="hidden">
+                        <p id="location-info">Fetching location...</p>
+                    </div>
+                </li>
+                <li><a href="#">🔔 Notifications</a></li>
+                <li><a href="#" id="logout">🚪 Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="card">
+                <h3>Disease Identification</h3>
+                <p>Identify diseases in your crops by uploading an image.</p>
+                <button onclick="toggleDiseaseBox()">Identify Disease</button>
+
+                <div id="disease-box" class="hidden">
+                    <label for="plant-select">Select a Crop:</label>
+                    <select id="plant-select">
+                        <option value="Banana">Banana</option>
+                        <option value="Grapes">Grapes</option>
+                        <option value="Corn">Corn</option>
+                    </select>
+                    <br><br>
+
+                    <label for="image-upload">Upload an Image:</label>
+                    <input type="file" id="image-upload" accept="image/*">
+                    <br><br>
+
+                    <button onclick="submitDiseaseForm()">Submit</button>
+
+                    <p id="disease-result"></p> <!-- Prediction Result Here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dynamically update the dashboard title with the logged-in user's username
+        document.addEventListener('DOMContentLoaded', function () {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const dashboardTitle = document.getElementById('dashboard-title');
+            if (currentUser && currentUser.username) {
+                dashboardTitle.textContent = `🚜 ${currentUser.username}'s Dashboard`;
+            } else {
+                dashboardTitle.textContent = '🚜 Guest Dashboard';
+            }
+        });
+    </script>
+</body>
+</html>

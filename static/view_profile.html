@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Profile</title>
+    <link rel="stylesheet" href="profile.css">
+    <script src="view_profile.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="home.html">Home</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="index.html" id="logout-button">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="profile-card">
+            <div class="profile-image">
+                <img id="profile-picture" src="default-profile.png" alt="Profile Picture" style="width: 150px; height: 150px;">
+            </div>
+            <div class="profile-info">
+                <p id="profile-username"></p>
+                <p id="profile-role">User Role</p>
+
+            </div>
+        </section>
+
+        <section class="about-section">
+            <h2>About Me</h2>
+            <p id="about-text"></p>
+        </section>
+    </main>
+</body>
+</html>

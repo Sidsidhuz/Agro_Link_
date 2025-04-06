@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Register</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <h1> 🚜 AGRO-LINK</h1>
+    </header>
+
+    <div class="container">
+        <!-- Login Form -->
+        <div id="login-box">
+            <h2>Login</h2>
+            <input type="tel" id="login-phone" placeholder="Phone Number" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button onclick="login()">Login</button>
+            <p>Don't have an account? <a href="#" onclick="toggleForm()">Register</a></p>
+        </div>
+
+        <!-- Registration Form -->
+        <div id="register-box" style="display: none;">
+            <h2>Register</h2>
+            <input type="text" id="register-username" placeholder="Username" required>
+            <input type="tel" id="register-phone" placeholder="Phone Number" required>
+            <input type="password" id="register-password" placeholder="Password" required>
+
+            <!-- New Fields -->
+            <select id="register-country" required>
+                <option value="">Select Country</option>
+            </select>
+            <select id="register-state" required>
+                <option value="">Select State</option>
+            </select>
+            <input type="text" id="register-place" placeholder="Place" required>
+
+            <button onclick="register()">Register</button>
+            <p>Already have an account? <a href="#" onclick="toggleForm()">Login</a></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

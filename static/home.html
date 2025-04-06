@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Users</title>
+    <link rel="stylesheet" href="home.css">
+    <script src="home.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>Welcome, <span id="logged-in-username">Guest</span></h1>
+        <div class="header-actions">
+            <a href="/profile.html" class="header-button">Profile</a>
+            <a href="dashboard.html" class="header-button">Dashboard</a>
+            <a href="index.html" class="logout-button" id="logout-button">Logout</a>
+            <a href="chat.html" id="chat-button" class="header-button">Chat</a>
+
+
+        </div>
+        <!-- Search Bar in Header -->
+        <div id="search-container">
+            <input type="text" id="search-query" placeholder="Search for users..." autocomplete="off">
+            <div id="search-results" class="dropdown"></div>
+        </div>
+    </header>
+
+    <main>
+        <section id="all-posts">
+            <h2>All Posts</h2>
+            <div id="posts-container"></div>
+        </section>
+    </main>
+
+    <script>
+        fetch('/all_posts')
+            .then(response => response.json())
+            .then(data => {
+                const postsContainer = document.getElementById('posts-container');
+                data.posts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.innerHTML = `
+                        <p><strong>Username:</strong> ${post.username}</p>
+                        <img src="${post.image_path}" alt="Post Image" style="width: 100px; height: 100px;">
+                        <p><strong>Prediction:</strong> ${post.prediction}</p>
+                        <p><strong>Timestamp:</strong> ${post.timestamp}</p>
+                    `;
+                    postsContainer.appendChild(postElement);
+                });
+            });
+    </script>
+</body>
+</html>
