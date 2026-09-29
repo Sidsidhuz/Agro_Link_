@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F6F4EF">
+  <meta name="description" content="AgroLink — A local farmer community app. Share your farm, plan planting seasons, diagnose crop diseases, and alert nearby farmers.">
+  <title>AgroLink · Grow together</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/static/app.css?v=30">
+</head>
+<body>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <main id="auth" class="auth-layout">
+    <div class="auth-intro">
+      <div class="wordmark light"><span class="brand-icon">✳</span> AgroLink</div>
+      <p class="eyebrow">A space for the people who grow our food</p>
+      <h1>Grow better.<br><em>Together.</em></h1>
+      <p>Share your farm, prepare for the next season, and help nearby farmers spot crop problems early.</p>
+      <div class="auth-art" aria-hidden="true"><span>☀</span><div class="hill hill-one"></div><div class="hill hill-two"></div><div class="sprout">✺</div></div>
+    </div>
+    <div class="auth-panel">
+      <div class="auth-card">
+        <p class="eyebrow">Welcome to your farm community</p>
+        <h2 id="auth-title">Sign in</h2>
+        <div class="segmented" role="tablist" aria-label="Account action"><button class="active" id="login-tab" type="button">Sign in</button><button id="register-tab" type="button">Create account</button></div>
+        <form id="auth-form">
+          <div id="register-fields" hidden>
+            <label>Full name<input name="username" autocomplete="name" placeholder="Your name"></label>
+            <label>Farm location<input name="place" placeholder="Town or village, Kerala"></label>
+            <label>Crops you grow</label><div class="crop-choices"><label class="check"><input type="checkbox" name="crop-choice" value="Banana"> Banana</label><label class="check"><input type="checkbox" name="crop-choice" value="Corn"> Corn</label><label class="check"><input type="checkbox" name="crop-choice" value="Grapes"> Grapes</label></div>
+            <label class="check"><input name="irrigation" type="checkbox"> I have irrigation for these crops</label>
+          </div>
+          <label>Phone number<input name="phone" inputmode="tel" autocomplete="tel" required placeholder="Your phone number"></label>
+          <label>Password<input name="password" type="password" autocomplete="current-password" required placeholder="At least 8 characters"></label>
+          <button class="primary wide" type="submit" id="auth-submit">Sign in</button>
+        </form>
+        <p class="muted small" style="margin-top:14px">Your farm's exact location is optional and is only used to find nearby disease alerts. Add it in Profile.</p>
+      </div>
+    </div>
+  </main>
+
+  <div id="app-shell" hidden>
+    <aside class="sidebar">
+      <div class="wordmark"><span class="brand-icon">✳</span> AgroLink</div>
+      <p class="side-caption">FARM COMMUNITY</p>
+      <nav id="nav" aria-label="Main navigation">
+        <button data-page="feed" class="active">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="6" height="6" rx="1.5"/><rect x="10" y="2" width="6" height="6" rx="1.5"/><rect x="2" y="10" width="6" height="6" rx="1.5"/><rect x="10" y="10" width="6" height="6" rx="1.5"/></svg>
+          Community feed
+        </button>
+        <button data-page="planner">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="14" height="12.5" rx="2"/><path d="M2 7.5h14M6 1.5v4M12 1.5v4"/></svg>
+          Planting planner
+        </button>
+        <button data-page="diagnose">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 13.5c0-5 3-8.5 9-9-.5 5-3.5 9-9 9z"/><path d="M4.5 13.5C7 11 10 8 13.5 4.5"/></svg>
+          Diagnose a crop
+        </button>
+        <button data-page="alerts">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 15a1.5 1.5 0 003 0"/><path d="M4 11.5V8a5 5 0 0110 0v3.5l1.5 2H2.5l1.5-2z"/></svg>
+          Nearby alerts <b id="alert-count" hidden></b>
+        </button>
+        <button data-page="diary">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="1.5" width="11" height="15" rx="2"/><path d="M7 5.5h4M7 8.5h4M7 11.5h2.5"/></svg>
+          Farm diary
+        </button>
+        <button data-page="messages">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13.5l1.5-3A5.5 5.5 0 1114 6.5 5.5 5.5 0 015.5 10L3 13.5z"/></svg>
+          Messages
+        </button>
+      </nav>
+      <div class="side-footer">
+        <button type="button" class="side-profile" data-page="profile" aria-label="Open my profile">
+          <div class="avatar small-avatar" id="side-avatar">F</div>
+          <div><strong id="side-name">Farmer</strong><small id="side-place">Your farm</small></div>
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <div>
+          <div class="mobile-brand">✳ AgroLink</div>
+          <p class="eyebrow">YOUR FARM, YOUR COMMUNITY</p>
+          <h1 id="page-title">Community feed</h1>
+        </div>
+        <div class="top-actions">
+          <span id="weather-pill" class="weather-pill">☀ Weather</span>
+          <button id="top-alerts" class="icon-button notification" aria-label="Open nearby alerts">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 13a2 2 0 004 0"/><path d="M3 10.5V7a5 5 0 0110 0v3.5l1.5 2H1.5l1.5-2z"/></svg>
+          </button>
+        </div>
+      </header>
+      <div id="page-content" class="content"></div>
+    </div>
+
+    <button type="button" class="share-toggle" id="share-toggle" aria-label="New post" title="New post">+</button>
+
+    <dialog id="compose-dialog">
+      <div class="dialog-header">
+        <h3>Share from your farm</h3>
+        <button type="button" id="compose-close" class="dialog-close" aria-label="Close">×</button>
+      </div>
+      <form id="post-form">
+        <label>Photo<input type="file" name="image" accept="image/jpeg,image/png,image/webp" required></label>
+        <label>Caption<textarea name="caption" maxlength="1000" placeholder="What's happening on your farm?"></textarea></label>
+        <div class="row">
+          <label>Crop<select name="crop"><option value="">Choose crop</option><option>Banana</option><option>Corn</option><option>Grapes</option></select></label>
+          <label>Observation<input name="prediction" placeholder="e.g. healthy new leaves"></label>
+        </div>
+        <div class="form-actions"><button class="primary">Publish post</button></div>
+      </form>
+    </dialog>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <button data-page="feed">▦<small>Feed</small></button>
+      <button data-page="planner">◷<small>Plan</small></button>
+      <button data-page="diagnose">✳<small>Scan</small></button>
+      <button data-page="alerts">◉<small>Alerts</small></button>
+      <button data-page="profile">♙<small>Profile</small></button>
+      <button id="mobile-more" type="button">☰<small>More</small></button>
+    </nav>
+    <div id="more-menu" class="more-menu" hidden><button data-page="diary">Farm diary</button><button data-page="messages">Messages</button></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="/static/app.js?v=30" defer></script>
+</body>
+</html>
