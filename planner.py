@@ -34,10 +34,22 @@ def next_window(crop: str, irrigated: bool, today: date | None = None):
                 options.append((start, end))
     start, end = min(options)
     days = max(0, (start - today).days)
+    task_specs = [
+        (start - timedelta(days=21), "Prepare soil", "Loosen the soil, add organic matter, and clear weeds.", "soil"),
+        (start - timedelta(days=14), "Arrange planting material", f"Confirm healthy {crop.lower()} planting material is ready.", "materials"),
+        (start - timedelta(days=7), "Check irrigation" if irrigated else "Inspect field drainage", "Test the irrigation route before planting." if irrigated else "Clear drainage channels before seasonal rain.", "water"),
+        (start, "Planting window opens", f"Begin {crop.lower()} planting when local field conditions are suitable.", "plant"),
+        (start + timedelta(days=7), "Irrigation reminder" if irrigated else "Check soil moisture", "Water young plants according to soil moisture." if irrigated else "Inspect moisture around new plants after the first week.", "water"),
+        (end - timedelta(days=7), "Planting window closing", "Complete planting soon or confirm updated local guidance.", "warning"),
+    ]
+    tasks = [
+        {"date": task_date.isoformat(), "title": title, "details": details, "kind": task_kind}
+        for task_date, title, details, task_kind in task_specs
+    ]
     return {
         "crop": crop, "supported": True, "method": kind,
         "start": start.isoformat(), "end": end.isoformat(),
         "days_until": days, "in_window": start <= today <= end,
         "prepare_now": days <= 30,
-        "note": rule["note"], "source": rule["source"],
+        "note": rule["note"], "source": rule["source"], "tasks": tasks,
     }

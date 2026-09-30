@@ -20,9 +20,16 @@ async function navigate(page){
   if(!pages[page])return;state.page=page;$('#page-title').textContent=pages[page];$('#more-menu').hidden=true;
   document.querySelectorAll('[data-page]').forEach(button=>button.classList.toggle('active',button.dataset.page===page));
   const container=$('#page-content');container.innerHTML='<div class="card muted" style="text-align:center;padding:32px">Loading…</div>';
-  try{await ({feed:renderFeed,planner:renderPlanner,diagnose:renderDiagnose,alerts:renderAlerts,diary:renderDiary,messages:renderMessages,profile:renderProfile})[page](container)}catch(error){container.innerHTML=`<div class="card">${escapeHtml(error.message)}</div>`}
+  try{await ({feed:renderFeed,planner:renderPlanner,diagnose:renderDiagnose,alerts:renderAlerts,diary:renderDiary,messages:renderMessages,profile:renderProfile})[page](container);decorateBreeze(container)}catch(error){container.innerHTML=`<div class="card">${escapeHtml(error.message)}</div>`}
 }
-async function loadWeather(){try{const data=await api('/api/weather');$('#weather-pill').textContent=`☀ ${data.place?data.place+' · ':''}${data.weather}`}catch{$('#weather-pill').textContent='Weather unavailable'}}
+function decorateBreeze(root){
+  root.querySelectorAll('.community-welcome,.page-intro').forEach(banner=>{
+    if(banner.querySelector('.breeze-leaves,.leaf-art'))return;
+    const leaves=document.createElement('div');leaves.className='breeze-leaves';leaves.setAttribute('aria-hidden','true');
+    leaves.innerHTML='<i></i><i></i><i></i><i></i><i></i><i></i>';banner.appendChild(leaves);
+  });
+}
+async function loadWeather(){try{const data=await api('/api/weather');state.weather=`☀ ${data.place?data.place+' · ':''}${data.weather}`}catch{state.weather='Weather unavailable'}$('#weather-pill').textContent=state.weather;const rail=$('#rail-weather');if(rail)rail.textContent=state.weather}
 async function refreshAlerts(){if(!state.user)return;try{const data=await api('/api/alerts');const count=data.alerts.filter(a=>!a.is_read).length;const el=$('#alert-count');el.hidden=!count;el.textContent=count;if(state.page==='alerts')renderAlerts($('#page-content'))}catch{}}
 
 function postCard(post){
@@ -48,10 +55,11 @@ function postCard(post){
 async function renderFeed(root){
   const [data,plan]=await Promise.all([api('/api/feed'),api('/api/planner')]);
   const next=plan.windows.filter(w=>w.supported).sort((a,b)=>a.days_until-b.days_until)[0];
-  root.innerHTML=`<div class="grid feed-grid"><div>
+  root.innerHTML=`<section class="community-welcome"><p class="eyebrow">Rooted in community</p><h2>Good things grow together.</h2><p>A little inspiration from the field. Share your progress, learn from your neighbours, and grow your next chapter.</p><div class="leaf-art" aria-hidden="true"><i></i><i></i><i></i></div></section><div class="grid feed-grid"><div>
     <div id="feed-list">${data.posts.length?data.posts.map(postCard).join(''):'<div class="empty"><span>🌱</span><strong>No posts yet</strong>Share the first update from your farm.</div>'}</div>
   </div><aside class="right-rail feed-rail">
-    <div class="card"><h3>Next planting window</h3>
+    <div class="card"><p class="rail-kicker">Around your farm</p><div id="rail-weather" class="rail-weather">${escapeHtml(state.weather||'Checking weather…')}</div></div>
+    <div class="card season-card"><p class="rail-kicker">A season ahead</p><h3>Next planting window</h3>
       <p class="muted">${next?`${escapeHtml(next.crop)} · ${next.in_window?'Window open':next.prepare_now?'Prepare now':`Starts ${formatDate(next.start)}`}`:'Choose crops in Profile to see your next window.'}</p>
       <button class="secondary" data-page="planner" style="margin-top:8px">View planner</button>
     </div>
@@ -65,10 +73,52 @@ async function renderFeed(root){
 
 function debounce(fn,delay){let timer;return (...args)=>{clearTimeout(timer);timer=setTimeout(()=>fn(...args),delay)}}
 
+const parseFarmDate=value=>new Date(`${String(value).slice(0,10)}T00:00:00`);
+const farmDateKey=date=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+function cropTone(crop){const value=String(crop).toLowerCase();return value.includes('banana')?'banana':value.includes('corn')?'corn':value.includes('grape')?'grape':'other'}
+
+function plannerCalendarMarkup(windows,month,selectedKey,forecasts=[]){
+  const first=new Date(month.getFullYear(),month.getMonth(),1),days=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
+  const offset=(first.getDay()+6)%7,todayKey=farmDateKey(new Date()),cells=[];
+  const tasks=windows.flatMap(window=>(window.tasks||[]).map(task=>({...task,crop:window.crop})));
+  const weatherText=state.weather||'',rainNow=/rain|drizzle|shower|storm/i.test(weatherText);
+  const forecastByDate=new Map(forecasts.map(day=>[day.date,day]));
+  const taskIcon=kind=>({soil:'◒',materials:'◇',water:'💧',plant:'🌱',warning:'!'}[kind]||'•');
+  for(let blank=0;blank<offset;blank++)cells.push('<div class="calendar-day calendar-blank" aria-hidden="true"></div>');
+  for(let day=1;day<=days;day++){
+    const date=new Date(month.getFullYear(),month.getMonth(),day),key=farmDateKey(date);
+    const active=windows.filter(window=>date>=parseFarmDate(window.start)&&date<=parseFarmDate(window.end));
+    const preparing=windows.filter(window=>{const start=parseFarmDate(window.start),prep=new Date(start);prep.setDate(prep.getDate()-30);return date>=prep&&date<start});
+    const datedTasks=tasks.filter(task=>task.date===key),forecastDay=forecastByDate.get(key);
+    const predictedRain=forecastDay&&(Number(forecastDay.chance_of_rain||0)>=40||Number(forecastDay.precipitation_mm||0)>=.5);
+    const currentRain=!forecastDay&&key===todayKey&&rainNow,weatherEvent=predictedRain||currentRain;
+    const weatherLabel=predictedRain?`🌧 Rain expected · ${Math.round(Number(forecastDay.chance_of_rain||0))}%`:'🌧 Rain nearby today';
+    const labels=[...datedTasks.map(task=>`<span class="calendar-task-event task-${escapeHtml(task.kind)}">${taskIcon(task.kind)} ${escapeHtml(task.title)}</span>`),...(weatherEvent?[`<span class="calendar-task-event weather-event">${weatherLabel}</span>`]:[])];
+    if(labels.length<2&&active.length)labels.push(`<span class="crop-event crop-${cropTone(active[0].crop)}">${escapeHtml(active[0].crop)} · Plant</span>`);
+    if(labels.length<2&&preparing.length)labels.push(`<span class="crop-event crop-${cropTone(preparing[0].crop)} is-prepare">${escapeHtml(preparing[0].crop)} · Prepare</span>`);
+    const total=datedTasks.length+(weatherEvent?1:0)+active.length+preparing.length;
+    cells.push(`<button type="button" class="calendar-day ${key===todayKey?'is-today':''} ${key===selectedKey?'is-selected':''}" data-calendar-date="${key}" aria-label="${date.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}"><span class="day-number">${day}</span>${labels.slice(0,2).join('')}${total>2?`<small>+${total-2} more</small>`:''}</button>`);
+  }
+  const selected=parseFarmDate(selectedKey),selectedWindows=windows.filter(window=>selected>=parseFarmDate(window.start)&&selected<=parseFarmDate(window.end));
+  const selectedPreparing=windows.filter(window=>{const start=parseFarmDate(window.start),prep=new Date(start);prep.setDate(prep.getDate()-30);return selected>=prep&&selected<start});
+  const selectedTasks=tasks.filter(task=>task.date===selectedKey),selectedForecast=forecastByDate.get(selectedKey);
+  const forecastRain=selectedForecast&&(Number(selectedForecast.chance_of_rain||0)>=40||Number(selectedForecast.precipitation_mm||0)>=.5);
+  const selectedRain=forecastRain||(!selectedForecast&&selectedKey===todayKey&&rainNow);
+  const taskGuidance=selectedTasks.map(task=>`<div class="selected-task"><span class="task-symbol task-${escapeHtml(task.kind)}">${taskIcon(task.kind)}</span><div><strong>${escapeHtml(task.title)} · ${escapeHtml(task.crop)}</strong><p>${escapeHtml(task.details)}</p></div></div>`).join('');
+  const weatherGuidance=selectedRain?`<div class="selected-task"><span class="task-symbol weather-event">🌧</span><div><strong>${forecastRain?'Rain expected':'Rain reported nearby'}</strong><p>${forecastRain?`${Math.round(Number(selectedForecast.chance_of_rain||0))}% probability · ${Number(selectedForecast.precipitation_mm||0).toFixed(1)} mm expected · ${Math.round(Number(selectedForecast.min_c))}–${Math.round(Number(selectedForecast.max_c))}°C. Open-Meteo forecast.`:`${escapeHtml(weatherText)}. Confirm field conditions before irrigation or planting.`}</p></div></div>`:'';
+  const windowGuidance=!selectedTasks.length&&!selectedRain?(selectedWindows.length?selectedWindows.map(window=>`<div class="selected-task"><span class="crop-dot crop-${cropTone(window.crop)}"></span><div><strong>Plant ${escapeHtml(window.crop)}</strong><p>${escapeHtml(window.note)}</p></div></div>`).join(''):selectedPreparing.length?selectedPreparing.map(window=>`<div class="selected-task"><span class="crop-dot crop-${cropTone(window.crop)}"></span><div><strong>Prepare for ${escapeHtml(window.crop)}</strong><p>The verified planting window begins ${formatDate(window.start)}.</p></div></div>`).join(''):'<p class="muted">No planting action is scheduled for this day. Use it for field observation or regular maintenance.</p>'):'';
+  const guidance=taskGuidance+weatherGuidance+windowGuidance,hasAction=selectedTasks.length||selectedRain||selectedWindows.length||selectedPreparing.length;
+  return `<div class="calendar-toolbar"><div><p class="eyebrow">Seasonal calendar</p><h3>${first.toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</h3></div><div class="calendar-controls"><button type="button" class="icon-button" data-calendar-move="-1" aria-label="Previous month">←</button><button type="button" class="secondary calendar-today">Today</button><button type="button" class="icon-button" data-calendar-move="1" aria-label="Next month">→</button></div></div><div class="calendar-legend"><span><i class="crop-banana"></i>Banana</span><span><i class="crop-corn"></i>Corn</span><span><i class="crop-grape"></i>Grapes</span><span>🌧 Open-Meteo · ${forecasts.length||0}-day forecast</span><span class="prepare-key">Striped = prepare</span></div><div class="calendar-weekdays">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(day=>`<span>${day}</span>`).join('')}</div><div class="calendar-grid">${cells.join('')}</div><div class="selected-date-panel"><div><p class="eyebrow">Selected day</p><h3>${selected.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})}</h3></div><div class="selected-guidance">${guidance}</div>${hasAction?'<button type="button" class="secondary" data-page="diary">Add field note</button>':''}</div>`;
+}
+
 async function renderPlanner(root){
-  const data=await api('/api/planner');
+  const [data,weatherForecast]=await Promise.all([api('/api/planner'),api('/api/weather/forecast').catch(()=>({forecast:[]}))]);
+  const supported=data.windows.filter(window=>window.supported&&window.start&&window.end);
+  const nearest=supported.slice().sort((a,b)=>Math.abs(parseFarmDate(a.start)-Date.now())-Math.abs(parseFarmDate(b.start)-Date.now()))[0];
+  let calendarMonth=nearest?parseFarmDate(nearest.start):new Date(),selectedKey=nearest?String(nearest.start).slice(0,10):farmDateKey(new Date());
   root.innerHTML=`<div class="grid"><div>
     <div class="page-intro"><p class="eyebrow">Looking ahead</p><h2>Plan your next season</h2><p class="muted">Windows are based on KAU crop guidance for Kerala. Check your field and current local advisory before planting.</p></div>
+    <section class="card planner-calendar"><div id="season-calendar"></div></section>
     ${data.windows.length?data.windows.map(window=>window.supported?`<section class="card">
       <div class="card-header"><div><p class="eyebrow">${escapeHtml(window.method)} crop</p><h3>${escapeHtml(window.crop)}</h3></div>
         <span class="tag ${window.prepare_now?'warn':''}">${window.in_window?'Window open':window.prepare_now?'Prepare now':`${window.days_until} days away`}</span></div>
@@ -84,6 +134,13 @@ async function renderPlanner(root){
     <div class="card"><h3>About the reminder</h3>
       <p class="muted">"Prepare now" appears during the 30 days before a planting window, and while the window is open.</p></div>
   </aside></div>`;
+  const paintCalendar=()=>{
+    const calendar=$('#season-calendar');calendar.innerHTML=supported.length?plannerCalendarMarkup(supported,calendarMonth,selectedKey,weatherForecast.forecast||[]):'<div class="empty"><span>◷</span><strong>No verified crop windows</strong>Select a supported crop in your profile to build the calendar.</div>';
+    calendar.querySelectorAll('[data-calendar-move]').forEach(button=>button.addEventListener('click',()=>{calendarMonth=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()+Number(button.dataset.calendarMove),1);selectedKey=farmDateKey(calendarMonth);paintCalendar()}));
+    calendar.querySelector('.calendar-today')?.addEventListener('click',()=>{calendarMonth=new Date();selectedKey=farmDateKey(new Date());paintCalendar()});
+    calendar.querySelectorAll('[data-calendar-date]').forEach(button=>button.addEventListener('click',()=>{selectedKey=button.dataset.calendarDate;paintCalendar()}));
+  };
+  paintCalendar();
 }
 
 async function renderDiagnose(root){
@@ -162,7 +219,7 @@ async function openChat(otherId){
 
 async function renderProfile(root){
   const u=state.user;const own=await api(`/api/users/${u.id}`);
-  root.innerHTML=`<div class="grid"><div>
+  root.innerHTML=`<div class="page-intro"><p class="eyebrow">Your place in the community</p><h2>Your farm, your story</h2><p class="muted">Keep your farm details current so plans, nearby alerts, and fellow growers stay relevant to you.</p></div><div class="grid"><div>
     <div class="card"><div class="profile-hero">${avatar(u)}<div><h2>${escapeHtml(u.username)}</h2><p class="muted">${escapeHtml(u.place||'Add your location')} · ${escapeHtml(u.crops||'Choose your crops')}</p></div></div>
       <form id="avatar-form"><label>Profile photo<input type="file" name="image" accept="image/jpeg,image/png,image/webp" required></label><button class="secondary">Update photo</button></form></div>
     <div class="card"><h3>Edit your farm profile</h3><form id="profile-form">
@@ -218,7 +275,18 @@ async function viewUser(id){
   }catch(error){toast(error.message)}
 }
 
+function updateConnectionStatus(){
+  const indicator=$('#connection-status');
+  const offline=!navigator.onLine;
+  indicator.dataset.offline=String(offline);
+  indicator.textContent=offline?'Offline · saving unavailable':'Network connected';
+  indicator.title=offline?'Reconnect before posting or saving changes.':'Network available. Server access is checked when you make a request.';
+}
+
 function setup(){
+  updateConnectionStatus();
+  window.addEventListener('online',updateConnectionStatus);
+  window.addEventListener('offline',updateConnectionStatus);
   let registering=false;
   function authMode(value){registering=value;$('#register-fields').hidden=!value;$('#login-tab').classList.toggle('active',!value);$('#register-tab').classList.toggle('active',value);$('#auth-title').textContent=value?'Create your account':'Sign in';$('#auth-submit').textContent=value?'Create account':'Sign in';$('#auth-form').elements.namedItem('password').autocomplete=value?'new-password':'current-password'}
   $('#login-tab').addEventListener('click',()=>authMode(false));

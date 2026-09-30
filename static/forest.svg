@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" fill="none">
+  <defs>
+    <g id="tree" fill="#51745a">
+      <path d="M0 0-35 65h18l-34 56h24l-41 66h57v49h22v-49h57l-41-66h24L17 65h18Z"/>
+    </g>
+    <g id="branch" stroke="#527b59" stroke-width="3" stroke-linecap="round">
+      <path d="M0 210Q55 125 75 0"/>
+      <path fill="#6f936a" stroke="none" d="M27 154Q-27 141-15 99q48 2 42 55Zm14-39Q93 114 99 71q-45-5-58 44Zm16-44Q15 53 26 20q36 5 31 51Zm10-32Q108 38 114 6q-34-9-47 33Z"/>
+    </g>
+  </defs>
+  <path fill="#b5c9a5" d="M0 470Q220 370 450 485T900 455t300 20v125H0Z"/>
+  <g opacity=".55">
+    <use href="#tree" transform="translate(80 250) scale(1.2)"/>
+    <use href="#tree" transform="translate(230 330) scale(.9)"/>
+    <use href="#tree" transform="translate(960 310)"/>
+    <use href="#tree" transform="translate(1115 235) scale(1.4)"/>
+  </g>
+  <g opacity=".7">
+    <use href="#tree" transform="translate(15 310) scale(1.4)"/>
+    <use href="#tree" transform="translate(155 390)"/>
+    <use href="#tree" transform="translate(1040 390)"/>
+    <use href="#tree" transform="translate(1210 315) scale(1.4)"/>
+  </g>
+  <use href="#branch" transform="translate(15 25) rotate(-30)" opacity=".5"/>
+  <use href="#branch" transform="translate(1180 50) scale(-1 1) rotate(-20)" opacity=".5"/>
+</svg>

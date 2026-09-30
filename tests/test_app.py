@@ -84,6 +84,9 @@ def test_community_and_nearby_alerts(tmp_path, monkeypatch):
 def test_planting_window():
     result = planner.next_window("Banana", False, date(2026, 3, 10))
     assert result["start"] == "2026-04-01" and result["prepare_now"] is True
+    assert {task["title"] for task in result["tasks"]} >= {"Prepare soil", "Check soil moisture"}
+    irrigated = planner.next_window("Banana", True, date(2026, 3, 10))
+    assert "Irrigation reminder" in {task["title"] for task in irrigated["tasks"]}
     assert planner.next_window("Grapes", False)["supported"] is False
     assert main.distance_km(11.8745, 75.3704, 11.8745, 75.4104) < 5
     assert main.distance_km(11.8745, 75.3704, 11.8745, 75.4204) > 5

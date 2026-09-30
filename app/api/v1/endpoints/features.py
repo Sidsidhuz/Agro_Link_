@@ -145,6 +145,12 @@ async def weather(request: Request, user=Depends(_current_user)):
     return await WeatherService.fetch(user, request.app.state.http_client)
 
 
+@router.get("/weather/forecast")
+async def weather_forecast(request: Request, user=Depends(_current_user)):
+    from app.services.features import WeatherService
+    return await WeatherService.forecast(user, request.app.state.http_client)
+
+
 # ── messages ─────────────────────────────────────────────────────────────────
 
 @router.get("/conversations")

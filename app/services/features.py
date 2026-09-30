@@ -204,6 +204,8 @@ class MessageService:
 
 
 class WeatherService:
+    _forecast_cache = {}
+
     @staticmethod
     async def fetch(user, http_client):
         from urllib.parse import quote
@@ -217,3 +219,53 @@ class WeatherService:
         except Exception:
             value = "Weather unavailable"
         return {"place": place, "weather": value[:100]}
+
+    @classmethod
+    async def forecast(cls, user, http_client):
+        """Use a geocoded town centre for forecasts; never transmit farm coordinates."""
+        import time
+        place = user.place.strip() if user.place else ""
+        if not place:
+            return {"place": "", "forecast": [], "source": "Open-Meteo"}
+        cache_key = place.casefold()
+        cached = cls._forecast_cache.get(cache_key)
+        if cached and cached[0] > time.monotonic():
+            return cached[1]
+        try:
+            geocoding = await http_client.get(
+                "https://geocoding-api.open-meteo.com/v1/search",
+                params={"name": place, "count": 1, "language": "en", "format": "json"},
+                timeout=5,
+            )
+            geocoding.raise_for_status()
+            locations = geocoding.json().get("results", [])
+            if not locations:
+                return {"place": place, "forecast": [], "source": "Open-Meteo"}
+            location = locations[0]
+            response = await http_client.get(
+                "https://api.open-meteo.com/v1/forecast",
+                params={
+                    "latitude": location["latitude"], "longitude": location["longitude"],
+                    "daily": "weather_code,precipitation_probability_max,precipitation_sum,temperature_2m_max,temperature_2m_min",
+                    "forecast_days": 16, "timezone": "auto",
+                }, timeout=5,
+            )
+            response.raise_for_status()
+            daily = response.json().get("daily", {})
+            dates = daily.get("time", [])
+            forecast = [{
+                "date": value,
+                "weather_code": daily.get("weather_code", [None] * len(dates))[index],
+                "chance_of_rain": daily.get("precipitation_probability_max", [None] * len(dates))[index],
+                "precipitation_mm": daily.get("precipitation_sum", [None] * len(dates))[index],
+                "max_c": daily.get("temperature_2m_max", [None] * len(dates))[index],
+                "min_c": daily.get("temperature_2m_min", [None] * len(dates))[index],
+            } for index, value in enumerate(dates)]
+            result = {
+                "place": location.get("name", place), "forecast": forecast,
+                "source": "Open-Meteo", "range_days": len(forecast),
+            }
+            cls._forecast_cache[cache_key] = (time.monotonic() + 1800, result)
+            return result
+        except Exception:
+            return {"place": place, "forecast": [], "source": "Open-Meteo"}

@@ -6,15 +6,18 @@
   <meta name="theme-color" content="#F6F4EF">
   <meta name="description" content="AgroLink — A local farmer community app. Share your farm, plan planting seasons, diagnose crop diseases, and alert nearby farmers.">
   <title>AgroLink · Grow together</title>
+  <link rel="icon" type="image/png" href="/static/agrolink-icon.png">
+  <link rel="apple-touch-icon" href="/static/agrolink-icon.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/app.css?v=30">
+  <link rel="stylesheet" href="/static/app.css?v=31">
+  <link rel="stylesheet" href="/static/garden.css?v=40">
 </head>
 <body>
   <div id="toast" role="status" aria-live="polite"></div>
 
   <main id="auth" class="auth-layout">
     <div class="auth-intro">
-      <div class="wordmark light"><span class="brand-icon">✳</span> AgroLink</div>
+      <div class="wordmark light"><span class="brand-icon"><img src="/static/agrolink-icon.png" alt=""></span> AgroLink</div>
       <p class="eyebrow">A space for the people who grow our food</p>
       <h1>Grow better.<br><em>Together.</em></h1>
       <p>Share your farm, prepare for the next season, and help nearby farmers spot crop problems early.</p>
@@ -43,7 +46,7 @@
 
   <div id="app-shell" hidden>
     <aside class="sidebar">
-      <div class="wordmark"><span class="brand-icon">✳</span> AgroLink</div>
+      <div class="wordmark"><span class="brand-icon"><img src="/static/agrolink-icon.png" alt=""></span> AgroLink</div>
       <p class="side-caption">FARM COMMUNITY</p>
       <nav id="nav" aria-label="Main navigation">
         <button data-page="feed" class="active">
@@ -83,9 +86,10 @@
     <div class="main-area">
       <header class="topbar">
         <div>
-          <div class="mobile-brand">✳ AgroLink</div>
+          <div class="mobile-brand"><img src="/static/agrolink-icon.png" alt=""> AgroLink</div>
           <p class="eyebrow">YOUR FARM, YOUR COMMUNITY</p>
           <h1 id="page-title">Community feed</h1>
+          <span id="connection-status" class="connection-status" role="status">Checking connection</span>
         </div>
         <div class="top-actions">
           <span id="weather-pill" class="weather-pill">☀ Weather</span>
@@ -127,6 +131,6 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-  <script src="/static/app.js?v=30" defer></script>
+  <script src="/static/app.js?v=40" defer></script>
 </body>
 </html>
